@@ -7,6 +7,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <poll.h>
 #include <sstream>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -85,11 +86,23 @@ int HttpServer::run(std::atomic<bool>& running) {
               << " (doc_root=" << doc_root_ << ")" << std::endl;
 
     while (running.load()) {
+        struct pollfd pfd;
+        pfd.fd = listen_fd_;
+        pfd.events = POLLIN;
+        pfd.revents = 0;
+
+        int pr = poll(&pfd, 1, 200);
+        if (pr < 0) {
+            if (errno == EINTR) continue;
+            std::cerr << "poll() failed: " << std::strerror(errno) << std::endl;
+            continue;
+        }
+        if (pr == 0) continue;
+
         sockaddr_in client{};
         socklen_t client_len = sizeof(client);
         int client_fd = accept(listen_fd_, reinterpret_cast<sockaddr*>(&client), &client_len);
         if (client_fd < 0) {
-            if (!running.load()) break;
             std::cerr << "accept() failed: " << std::strerror(errno) << std::endl;
             continue;
         }

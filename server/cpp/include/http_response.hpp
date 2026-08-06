@@ -12,6 +12,7 @@ public:
     HttpResponse& body(const std::string& content);
 
     std::string build() const;
+    int status_code() const { return status_; }
 
 private:
     int status_ = 200;

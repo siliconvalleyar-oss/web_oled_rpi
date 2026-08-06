@@ -1,6 +1,6 @@
 CXX      = g++
 CXXFLAGS = -std=c++11 -O2 -Wall -Wextra -Iinclude
-LDFLAGS  =
+LDFLAGS  = -lSSD1306_OLED_RPI -lbcm2835
 
 TARGET   = web_server
 BINDIR   = bin
@@ -23,7 +23,7 @@ dirs:
 	@mkdir -p $(BINDIR) $(OBJDIR)
 
 $(BIN): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@

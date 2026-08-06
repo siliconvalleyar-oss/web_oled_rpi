@@ -50,7 +50,11 @@ HttpResponse HttpServer::route(const HttpRequest& req) const {
     return res;
 }
 
-int HttpServer::run() {
+void HttpServer::set_request_hook(RequestHook hook) {
+    request_hook_ = std::move(hook);
+}
+
+int HttpServer::run(std::atomic<bool>& running) {
     listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd_ < 0) {
         std::cerr << "socket() failed: " << std::strerror(errno) << std::endl;
@@ -80,11 +84,12 @@ int HttpServer::run() {
     std::cout << "Servidor C++ escuchando en 0.0.0.0:" << port_
               << " (doc_root=" << doc_root_ << ")" << std::endl;
 
-    while (true) {
+    while (running.load()) {
         sockaddr_in client{};
         socklen_t client_len = sizeof(client);
         int client_fd = accept(listen_fd_, reinterpret_cast<sockaddr*>(&client), &client_len);
         if (client_fd < 0) {
+            if (!running.load()) break;
             std::cerr << "accept() failed: " << std::strerror(errno) << std::endl;
             continue;
         }
@@ -121,8 +126,13 @@ void HttpServer::handle_client(int client_fd) {
         std::string response = res.build();
         send(client_fd, response.data(), response.size(), 0);
 
+        int status = res.status_code();
         std::cout << req.method() << " " << req.path() << " -> "
-                  << response.substr(9, 3) << std::endl;
+                  << status << std::endl;
+
+        if (request_hook_) {
+            request_hook_(status, ++requests_, req.path());
+        }
     }
 
     ::close(client_fd);

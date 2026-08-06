@@ -1,4 +1,4 @@
-# raspberry-src — Servidor Web C++ y Python (Raspberry Pi)
+# web_oled_rpi — Servidor Web C++ y Python (Raspberry Pi)
 
 Dashboard web para la Raspberry Pi Zero 2 W con dos implementaciones de
 servidor y frontend compartido:
@@ -22,7 +22,7 @@ para el display OLED 128x32 (I2C).
 ## Estructura del proyecto
 
 ```
-raspberry-src/
+web_oled_rpi/
 ├── Makefile             # orquestación: cpp, run/start/stop, py-*, clean
 ├── README.md
 ├── .gitignore

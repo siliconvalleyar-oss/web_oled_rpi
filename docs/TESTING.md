@@ -51,7 +51,7 @@ md5sum test1mb.bin   # guardar el hash
 ### Envío (subida a la Pi)
 
 ```bash
-time scp test1mb.bin pi@rpi2w.local:/home/pi/src/raspberry-src/var/input/
+time scp test1mb.bin pi@rpi2w.local:/home/pi/src/web_oled_rpi/var/input/
 ```
 
 ### Recepción (descarga vía servidor C++)

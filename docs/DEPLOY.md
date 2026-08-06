@@ -5,7 +5,7 @@
 Servidor C++:
 
 ```bash
-cd /home/pi/src/raspberry-src
+cd /home/pi/src/web_oled_rpi
 make run PORT=8081
 ```
 
@@ -41,13 +41,13 @@ Description=Servidor Web C++ (sockets)
 After=network.target
 
 [Service]
-WorkingDirectory=/home/pi/src/raspberry-src
-ExecStart=/home/pi/src/raspberry-src/server/cpp/bin/web_server 8081 web
+WorkingDirectory=/home/pi/src/web_oled_rpi
+ExecStart=/home/pi/src/web_oled_rpi/server/cpp/bin/web_server 8081 web
 Restart=on-failure
 RestartSec=3
 User=pi
-StandardOutput=append:/home/pi/src/raspberry-src/var/logs/server.log
-StandardError=append:/home/pi/src/raspberry-src/var/logs/server.log
+StandardOutput=append:/home/pi/src/web_oled_rpi/var/logs/server.log
+StandardError=append:/home/pi/src/web_oled_rpi/var/logs/server.log
 
 [Install]
 WantedBy=multi-user.target
@@ -63,13 +63,13 @@ Description=Servidor Web Python (dashboard + API)
 After=network.target
 
 [Service]
-WorkingDirectory=/home/pi/src/raspberry-src
-ExecStart=/usr/bin/python3 /home/pi/src/raspberry-src/server/python/serve.py 8000
+WorkingDirectory=/home/pi/src/web_oled_rpi
+ExecStart=/usr/bin/python3 /home/pi/src/web_oled_rpi/server/python/serve.py 8000
 Restart=on-failure
 RestartSec=3
 User=pi
-StandardOutput=append:/home/pi/src/raspberry-src/var/logs/python.log
-StandardError=append:/home/pi/src/raspberry-src/var/logs/python.log
+StandardOutput=append:/home/pi/src/web_oled_rpi/var/logs/python.log
+StandardError=append:/home/pi/src/web_oled_rpi/var/logs/python.log
 
 [Install]
 WantedBy=multi-user.target

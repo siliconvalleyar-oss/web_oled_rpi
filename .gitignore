@@ -1,0 +1,25 @@
+# Build artifacts
+server/cpp/bin/
+server/cpp/obj/
+*.o
+*.d
+
+# Runtime (datos y logs)
+var/
+*.log
+*.pid
+__pycache__/
+*.pyc
+
+# Datos de prueba
+test1mb.bin
+download.bin
+
+# Libreria OLED SSD1306 (vendored en libs/)
+libs/ssd1306/obj/
+libs/ssd1306/libSSD1306_OLED_RPI.so*
+
+# Editor / OS
+*.swp
+*~
+.DS_Store

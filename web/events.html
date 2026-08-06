@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Eventos - RPi2W</title>
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="stylesheet" href="css/events.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <img src="img/favicon.svg" alt="logo" class="logo">
+            <div>
+                <h1>Monitor de Eventos</h1>
+                <span class="subtitle">Terminal de eventos del servidor &middot; SSE en vivo</span>
+            </div>
+        </div>
+        <div class="actions">
+            <span class="status-badge">
+                <span class="dot" id="status-dot"></span>
+                <span id="status-text">sin conexi&oacute;n</span>
+            </span>
+            <button id="btn-toggle" class="btn">Iniciar monitoreo</button>
+            <button id="btn-clear" class="btn ghost">Limpiar</button>
+            <a class="btn ghost" href="/">Dashboard</a>
+        </div>
+    </header>
+
+    <main>
+        <div id="term" class="term" aria-live="polite">
+            <span class="prompt">$ </span>Servidor listo. Pulsa &laquo;Iniciar monitoreo&raquo; para ver todos los eventos en vivo.
+        </div>
+    </main>
+
+    <footer class="footer">
+        <label class="chk"><input type="checkbox" id="autoscroll" checked> Autoscroll</label>
+        <span id="count">0 eventos</span>
+    </footer>
+
+    <script src="js/events.js"></script>
+</body>
+</html>

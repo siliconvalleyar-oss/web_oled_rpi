@@ -1,5 +1,6 @@
 #include "server.hpp"
 
+#include "events.hpp"
 #include "http_common.hpp"
 #include "mime_types.hpp"
 #include "security.hpp"
@@ -157,11 +158,19 @@ void HttpServer::handle_client(int client_fd) {
                 send(client_fd, bad_resp.data(), bad_resp.size(), 0);
                 std::cout << "[SEGURIDAD] SHA-256 NO coincide para POST "
                           << req.path() << " -> 400" << std::endl;
+                events().push("[SEGURIDAD] SHA-256 NO coincide para POST "
+                              + req.path() + " -> 400");
                 if (request_hook_) request_hook_(400, ++requests_, req.path());
                 ::close(client_fd);
                 return;
             }
             std::cout << "[SEGURIDAD] SHA-256 OK para POST " << req.path() << std::endl;
+            events().push("[SEGURIDAD] SHA-256 OK para POST " + req.path());
+        }
+
+        if (req.method() == "GET" && req.path() == "/api/events") {
+            events().handle_sse(client_fd);
+            return;
         }
 
         if (req.valid()) {
@@ -178,6 +187,8 @@ void HttpServer::handle_client(int client_fd) {
         int status = res.status_code();
         std::cout << req.method() << " " << req.path() << " -> "
                   << status << std::endl;
+        events().push("[HTTP] " + req.method() + " " + req.path() + " -> "
+                      + std::to_string(status));
 
         if (request_hook_) {
             request_hook_(status, ++requests_, req.path());

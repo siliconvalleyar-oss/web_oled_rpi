@@ -1,5 +1,5 @@
 CXX      = g++
-CXXFLAGS = -std=c++11 -O2 -Wall -Wextra -Iinclude
+CXXFLAGS = -std=c++11 -O2 -Wall -Wextra -pthread -Iinclude
 
 ARCH     := $(shell uname -m)
 ifneq ($(strip $(findstring arm,$(ARCH))$(findstring aarch64,$(ARCH))),)

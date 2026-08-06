@@ -1,6 +1,7 @@
 #include "server.hpp"
 #include "system_info.hpp"
 #include "client.hpp"
+#include "events.hpp"
 #include "json_util.hpp"
 #include "oled_status.hpp"
 
@@ -46,6 +47,7 @@ bool oled_init_guarded() {
     oled_arm_watchdog();
     if (setjmp(g_oled_jmp) != 0) {
         std::fprintf(stderr, "[OLED] Init agotado (bus I2C atascado). Continuando sin display.\n");
+        http::events().push("[OLED] Init agotado (bus I2C atascado)");
         g_oled.disable();
         return false;
     }
@@ -61,6 +63,7 @@ void oled_show_guarded(const std::string& l1, const std::string& l2,
     oled_arm_watchdog();
     if (setjmp(g_oled_jmp) != 0) {
         std::fprintf(stderr, "[OLED] Actualizacion agotada (bus I2C atascado). Display desactivado.\n");
+        http::events().push("[OLED] Actualizacion agotada (bus I2C atascado). Display desactivado");
         g_oled.disable();
         return;
     }
@@ -98,9 +101,13 @@ int main(int argc, char* argv[]) {
     std::string peer_json = "{}";
 
     oled_init_guarded();
+    http::events().push(g_oled.ready() ? "[OLED] Display listo"
+                                 : "[OLED] Display no disponible");
     oled_show_guarded("RPi Web Server", "Iniciando...", "Modo: recibe", "");
 
     http::HttpServer server(port, doc_root);
+    http::events().push("[SERVIDOR] Escuchando en 0.0.0.0:" + std::to_string(port)
+                  + " (doc: " + doc_root + ")");
 
     server.register_handler("/api/status", [](const http::HttpRequest&) {
         http::HttpResponse res;
@@ -111,6 +118,9 @@ int main(int argc, char* argv[]) {
     server.register_handler("/api/peer", [&peer_json](const http::HttpRequest& req) {
         if (req.method() == "POST" && !req.body().empty()) {
             peer_json = req.body();
+            std::string host = http::json_string(peer_json, "hostname");
+            std::string ip = http::json_string(peer_json, "ip");
+            http::events().push("[PEER] Estado recibido del PC: " + host + " " + ip);
         }
         http::HttpResponse res;
         res.content_type("application/json").body(peer_json);
@@ -155,6 +165,7 @@ int main(int argc, char* argv[]) {
     int rc = server.run(g_running);
 
     std::cout << "\nDeteniendo servidor..." << std::endl;
+    http::events().push("[SERVIDOR] Deteniendo servidor");
     oled_show_guarded("RPi Web Server", "Apagando...", "", "");
     g_oled.shutdown();
 

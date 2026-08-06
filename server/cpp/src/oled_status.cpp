@@ -1,9 +1,11 @@
 #include "oled_status.hpp"
 
+#include <cstdio>
+
+#if defined(__arm__) || defined(__aarch64__)
+
 #include <bcm2835.h>
 #include <SSD1306_OLED.hpp>
-
-#include <cstdio>
 
 OledStatus::~OledStatus() {
     shutdown();
@@ -67,3 +69,19 @@ void OledStatus::shutdown() {
     bcm2835_close();
     ready_ = false;
 }
+
+#else
+
+OledStatus::~OledStatus() {}
+
+bool OledStatus::init() {
+    std::fprintf(stderr, "[OLED] Display no disponible en esta plataforma (se requiere Raspberry Pi).\n");
+    return false;
+}
+
+void OledStatus::show(const std::string&, const std::string&,
+                      const std::string&, const std::string&) {}
+
+void OledStatus::shutdown() {}
+
+#endif

@@ -37,7 +37,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
 run: all
-	./$(BIN) $(PORT) $(DOC_ROOT)
+	exec ./$(BIN) $(PORT) $(DOC_ROOT)
 
 start: all dirs
 	@mkdir -p $(LOGDIR); nohup ./$(BIN) $(PORT) $(DOC_ROOT) > $(LOG) 2>&1 & echo $$! > $(PIDFILE); sleep 0.5; echo "Servidor iniciado en puerto $(PORT), log en $(LOG)"; cat $(LOG)

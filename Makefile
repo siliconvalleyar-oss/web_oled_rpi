@@ -11,6 +11,9 @@ cpp:
 run:
 	$(MAKE) -C server/cpp run
 
+send:
+	$(MAKE) -C server/cpp send
+
 start:
 	$(MAKE) -C server/cpp start
 
@@ -37,4 +40,4 @@ clean:
 cleanall:
 	$(MAKE) -C server/cpp cleanall
 
-.PHONY: all cpp run start stop restart py-run py-start py-stop clean cleanall
+.PHONY: all cpp run send start stop restart py-run py-start py-stop clean cleanall

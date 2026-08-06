@@ -28,11 +28,12 @@ ss -tln | grep 8081   # debe estar vacío
 
 `pkill -f web_server` coincide con cualquier proceso cuya línea de
 comandos contenga `web_server`, incluido el propio shell que lo ejecuta.
-Usar siempre el nombre exacto. El binario se nombra con la versión
-(`web_server_v<VERSION>`, ej: `web_server_v1.0.6`):
+Usar siempre el nombre exacto. El binario se nombra con la rama git actual y
+la versión (`web_server_<RAMA>_v<VERSION>`, ej:
+`web_server_recepcion-rpi_v1.1.1` en la Raspberry):
 
 ```bash
-pkill -x web_server_v$(cat ../../VERSION)
+pkill -x web_server_$(git rev-parse --abbrev-ref HEAD)_v$(cat ../../VERSION)
 ```
 
 ## ifconfig: command not found al conectar por SSH

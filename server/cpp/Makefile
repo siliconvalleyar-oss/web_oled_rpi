@@ -13,7 +13,8 @@ SEND_HOST ?= rpi2w.local
 SEND_PORT ?= 8081
 
 VERSION  := $(shell cat ../../VERSION 2>/dev/null || echo 0.0.0)
-TARGET   = web_server_v$(VERSION)
+BRANCH   := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo desconocida)
+TARGET   = web_server_$(BRANCH)_v$(VERSION)
 BINDIR   = bin
 OBJDIR   = obj
 SRCDIR   = src

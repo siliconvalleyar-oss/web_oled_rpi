@@ -31,8 +31,10 @@ make start PORT=8081
 make stop
 ```
 
-Equivale a `pkill -x web_server_v<VERSION>` (el binario se nombra con la
-versión del archivo `VERSION`, ej: `web_server_v1.0.6`).
+Equivale a `pkill -x web_server_<RAMA>_v<VERSION>` (el binario se nombra con
+la rama git actual y la versión del archivo `VERSION`, ej:
+`web_server_envio-pc_v1.1.1` en la rama `envio-pc`,
+`web_server_recepcion-rpi_v1.1.1` en `recepcion-rpi`).
 
 > Usar `pkill -x` (nombre exacto). `pkill -f web_server` también coincide
 > con el shell que lo ejecuta y puede matarse a sí mismo.

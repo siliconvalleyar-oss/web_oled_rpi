@@ -46,8 +46,19 @@ else
 RUN_CMD = ./$(BIN) send $(SEND_HOST) $(SEND_PORT)
 endif
 
+ifdef ARM_TARGET
+run: all
+	@if [ "$$(id -u)" -ne 0 ]; then \
+		echo "Se requiere root para el OLED; relanzando con sudo..."; \
+		exec sudo -E $(MAKE) -s run; \
+	fi
+	fuser -k $(PORT)/tcp 2>/dev/null || true; \
+	sleep 1; \
+	exec $(RUN_CMD)
+else
 run: all
 	exec $(RUN_CMD)
+endif
 
 server: all
 	exec ./$(BIN) $(PORT) $(DOC_ROOT)

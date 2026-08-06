@@ -1,6 +1,7 @@
 #include "client.hpp"
 
 #include "json_util.hpp"
+#include "security.hpp"
 #include "system_info.hpp"
 
 #include <netdb.h>
@@ -49,6 +50,7 @@ bool send_status(const std::string& host, int port) {
     req << "Host: " << host << "\r\n";
     req << "Content-Type: application/json\r\n";
     req << "Content-Length: " << body.size() << "\r\n";
+    req << "X-Payload-SHA256: " << sha256_hex(body) << "\r\n";
     req << "Connection: close\r\n";
     req << "\r\n";
     req << body;

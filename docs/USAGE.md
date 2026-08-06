@@ -39,6 +39,20 @@ la rama git actual y la versión del archivo `VERSION`, ej:
 > Usar `pkill -x` (nombre exacto). `pkill -f web_server` también coincide
 > con el shell que lo ejecuta y puede matarse a sí mismo.
 
+### Seguridad del envío (integridad SHA-256)
+
+El cliente (`send`) firma el cuerpo del `POST /api/peer` con un hash
+SHA-256 y lo manda en el header `X-Payload-SHA256`. El servidor recalcula
+el hash del cuerpo recibido y lo compara:
+
+- Si coincide: procesa el `POST` (log `[SEGURIDAD] SHA-256 OK`).
+- Si no coincide: responde `400 Bad Request`
+  (`[SEGURIDAD] SHA-256 NO coincide`).
+
+Esto detecta corrupción o alteración accidental del payload. Para
+proteger de modificación deliberada (un atacante puede recalcular el
+hash) hace falta añadir una clave compartida (HMAC-SHA256).
+
 ## Servidor Python
 
 ### Uso básico

@@ -3,10 +3,10 @@ CXXFLAGS = -std=c++11 -O2 -Wall -Wextra -Iinclude
 
 ARCH     := $(shell uname -m)
 ifneq ($(strip $(findstring arm,$(ARCH))$(findstring aarch64,$(ARCH))),)
-LDFLAGS  = -lSSD1306_OLED_RPI -lbcm2835
+LDFLAGS  = -lSSD1306_OLED_RPI -lbcm2835 -lcrypto
 ARM_TARGET = 1
 else
-LDFLAGS  =
+LDFLAGS  = -lcrypto
 endif
 
 SEND_HOST ?= rpi2w.local

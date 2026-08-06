@@ -55,4 +55,10 @@ int HttpRequest::content_length() const {
     return std::atoi(it->second.c_str());
 }
 
+const std::string& HttpRequest::header(const std::string& name) const {
+    static const std::string empty;
+    auto it = headers_.find(name);
+    return it == headers_.end() ? empty : it->second;
+}
+
 }  // namespace http

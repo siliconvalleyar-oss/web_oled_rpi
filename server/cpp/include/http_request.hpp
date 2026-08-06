@@ -16,6 +16,7 @@ public:
     const std::string& path() const { return path_; }
     const std::string& body() const { return body_; }
     int content_length() const;
+    const std::string& header(const std::string& name) const;
     bool valid() const { return valid_; }
 
 private:

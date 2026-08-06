@@ -2,6 +2,7 @@
 
 #include "http_common.hpp"
 #include "mime_types.hpp"
+#include "security.hpp"
 
 #include <arpa/inet.h>
 #include <cstring>
@@ -141,6 +142,26 @@ void HttpServer::handle_client(int client_fd) {
                 have = request.size() - header_end;
             }
             req.parse(request);
+        }
+
+        if (req.method() == "POST" && !req.header("x-payload-sha256").empty()) {
+            std::string expected = req.header("x-payload-sha256");
+            std::string actual = sha256_hex(req.body());
+            if (actual != expected) {
+                HttpResponse bad;
+                bad.status(400)
+                    .content_type("application/json; charset=utf-8")
+                    .body("{\"error\":\"checksum no coincide\",\"esperado\":\"" +
+                          expected + "\",\"obtenido\":\"" + actual + "\"}");
+                std::string bad_resp = bad.build();
+                send(client_fd, bad_resp.data(), bad_resp.size(), 0);
+                std::cout << "[SEGURIDAD] SHA-256 NO coincide para POST "
+                          << req.path() << " -> 400" << std::endl;
+                if (request_hook_) request_hook_(400, ++requests_, req.path());
+                ::close(client_fd);
+                return;
+            }
+            std::cout << "[SEGURIDAD] SHA-256 OK para POST " << req.path() << std::endl;
         }
 
         if (req.valid()) {

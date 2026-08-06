@@ -16,6 +16,7 @@ SRCDIR   = src
 INCDIR   = include
 LOGDIR   = ../../var/logs
 LOG      = $(LOGDIR)/server.log
+PIDFILE  = $(LOGDIR)/server.pid
 PORT    ?= 8081
 DOC_ROOT = ../../web
 
@@ -39,14 +40,16 @@ run: all
 	./$(BIN) $(PORT) $(DOC_ROOT)
 
 start: all dirs
-	@mkdir -p $(LOGDIR)
-	nohup ./$(BIN) $(PORT) $(DOC_ROOT) > $(LOG) 2>&1 &
-	@sleep 0.5
-	@echo "Servidor iniciado en puerto $(PORT), log en $(LOG)"
-	@cat $(LOG)
+	@mkdir -p $(LOGDIR); nohup ./$(BIN) $(PORT) $(DOC_ROOT) > $(LOG) 2>&1 & echo $$! > $(PIDFILE); sleep 0.5; echo "Servidor iniciado en puerto $(PORT), log en $(LOG)"; cat $(LOG)
 
 stop:
-	@pkill -x $(TARGET) || echo "El servidor no estaba corriendo"
+	@if [ -f $(PIDFILE) ]; then \
+	  kill $$(cat $(PIDFILE)) 2>/dev/null || true; \
+	  rm -f $(PIDFILE); \
+	  echo "Servidor detenido"; \
+	else \
+	  pkill -x $(TARGET) 2>/dev/null || echo "El servidor no estaba corriendo"; \
+	fi
 
 restart: stop start
 

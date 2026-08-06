@@ -14,6 +14,8 @@ public:
     const std::string& target() const { return target_; }
     const std::string& version() const { return version_; }
     const std::string& path() const { return path_; }
+    const std::string& body() const { return body_; }
+    int content_length() const;
     bool valid() const { return valid_; }
 
 private:
@@ -21,6 +23,7 @@ private:
     std::string target_;
     std::string version_;
     std::string path_;
+    std::string body_;
     std::map<std::string, std::string> headers_;
     bool valid_ = false;
 };

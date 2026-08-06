@@ -1,5 +1,7 @@
 #include "server.hpp"
 #include "system_info.hpp"
+#include "client.hpp"
+#include "json_util.hpp"
 #include "oled_status.hpp"
 
 #include <atomic>
@@ -36,20 +38,37 @@ int main(int argc, char* argv[]) {
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
+    if (argc > 1 && std::string(argv[1]) == "send") {
+        std::string host = (argc > 2) ? argv[2] : "rpi2w.local";
+        int port = (argc > 3) ? std::atoi(argv[3]) : 8081;
+        return http::send_status(host, port) ? 0 : 1;
+    }
+
     int port = 8081;
     std::string doc_root = "web";
 
     if (argc > 1) port = std::atoi(argv[1]);
     if (argc > 2) doc_root = argv[2];
 
+    std::string peer_json = "{}";
+
     g_oled.init();
-    g_oled.show("RPi Web Server", "Iniciando...", "v1.0.1", "");
+    g_oled.show("RPi Web Server", "Iniciando...", "Modo: recibe", "");
 
     http::HttpServer server(port, doc_root);
 
     server.register_handler("/api/status", [](const http::HttpRequest&) {
         http::HttpResponse res;
         res.content_type("application/json").body(http::build_system_json());
+        return res;
+    });
+
+    server.register_handler("/api/peer", [&peer_json](const http::HttpRequest& req) {
+        if (req.method() == "POST" && !req.body().empty()) {
+            peer_json = req.body();
+        }
+        http::HttpResponse res;
+        res.content_type("application/json").body(peer_json);
         return res;
     });
 
@@ -70,12 +89,19 @@ int main(int argc, char* argv[]) {
         return res;
     });
 
-    server.set_request_hook([port](int status, long long count, const std::string& path) {
+    server.set_request_hook([port, &peer_json](int status, long long count, const std::string& path) {
+        std::string line4 = path;
+        std::string peer_host = http::json_string(peer_json, "hostname");
+        if (!peer_host.empty()) {
+            line4 = "PC: " + peer_host + " " + http::json_string(peer_json, "ip");
+            long long peer_temp = http::json_long(peer_json, "temp_c");
+            if (peer_temp >= 0) line4 += " " + std::to_string(peer_temp) + "C";
+        }
         oled_throttled(
             "RPi Web Server",
             "Escuchando :" + std::to_string(port),
             "Req: " + std::to_string(count) + "  " + std::to_string(status),
-            path);
+            http::json_truncate(line4, 20));
     });
 
     std::cout << "Inicializando OLED..." << std::endl;

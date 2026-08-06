@@ -128,7 +128,22 @@ void HttpServer::handle_client(int client_fd) {
         HttpRequest req;
         HttpResponse res;
 
-        if (req.parse(request)) {
+        req.parse(request);
+        size_t header_end = request.find("\r\n\r\n") + 4;
+        int needed = req.content_length();
+        if (needed > 0) {
+            size_t have = request.size() >= header_end ? request.size() - header_end : 0;
+            while (have < static_cast<size_t>(needed)) {
+                ssize_t n = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+                if (n <= 0) break;
+                buffer[n] = '\0';
+                request.append(buffer, static_cast<size_t>(n));
+                have = request.size() - header_end;
+            }
+            req.parse(request);
+        }
+
+        if (req.valid()) {
             res = route(req);
         } else {
             res.status(400)

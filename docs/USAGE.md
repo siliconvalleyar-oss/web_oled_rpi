@@ -31,7 +31,8 @@ make start PORT=8081
 make stop
 ```
 
-Equivale a `pkill -x web_server`.
+Equivale a `pkill -x web_server_v<VERSION>` (el binario se nombra con la
+versión del archivo `VERSION`, ej: `web_server_v1.0.6`).
 
 > Usar `pkill -x` (nombre exacto). `pkill -f web_server` también coincide
 > con el shell que lo ejecuta y puede matarse a sí mismo.

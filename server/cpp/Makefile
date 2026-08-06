@@ -8,7 +8,8 @@ else
 LDFLAGS  =
 endif
 
-TARGET   = web_server
+VERSION  := $(shell cat ../../VERSION 2>/dev/null || echo 0.0.0)
+TARGET   = web_server_v$(VERSION)
 BINDIR   = bin
 OBJDIR   = obj
 SRCDIR   = src

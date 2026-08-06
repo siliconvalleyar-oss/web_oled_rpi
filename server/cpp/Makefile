@@ -4,9 +4,13 @@ CXXFLAGS = -std=c++11 -O2 -Wall -Wextra -Iinclude
 ARCH     := $(shell uname -m)
 ifneq ($(strip $(findstring arm,$(ARCH))$(findstring aarch64,$(ARCH))),)
 LDFLAGS  = -lSSD1306_OLED_RPI -lbcm2835
+ARM_TARGET = 1
 else
 LDFLAGS  =
 endif
+
+SEND_HOST ?= rpi2w.local
+SEND_PORT ?= 8081
 
 VERSION  := $(shell cat ../../VERSION 2>/dev/null || echo 0.0.0)
 TARGET   = web_server_v$(VERSION)
@@ -36,8 +40,20 @@ $(BIN): $(OBJS)
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
+ifdef ARM_TARGET
+RUN_CMD = ./$(BIN) $(PORT) $(DOC_ROOT)
+else
+RUN_CMD = ./$(BIN) send $(SEND_HOST) $(SEND_PORT)
+endif
+
 run: all
+	exec $(RUN_CMD)
+
+server: all
 	exec ./$(BIN) $(PORT) $(DOC_ROOT)
+
+send: all
+	exec ./$(BIN) send $(SEND_HOST) $(SEND_PORT)
 
 start: all dirs
 	@mkdir -p $(LOGDIR); nohup ./$(BIN) $(PORT) $(DOC_ROOT) > $(LOG) 2>&1 & echo $$! > $(PIDFILE); sleep 0.5; echo "Servidor iniciado en puerto $(PORT), log en $(LOG)"; cat $(LOG)
@@ -59,4 +75,4 @@ clean:
 cleanall: clean
 	rm -rf $(BINDIR)
 
-.PHONY: all dirs run start stop restart clean cleanall
+.PHONY: all dirs run server send start stop restart clean cleanall

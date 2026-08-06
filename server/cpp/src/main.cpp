@@ -7,7 +7,9 @@
 #include <atomic>
 #include <chrono>
 #include <csignal>
+#include <csetjmp>
 #include <cstdlib>
+#include <cstdio>
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -24,12 +26,54 @@ void signal_handler(int) {
     g_running = false;
 }
 
+jmp_buf g_oled_jmp;
+volatile sig_atomic_t g_oled_timed_out = 0;
+
+void oled_watchdog_handler(int) {
+    g_oled_timed_out = 1;
+    std::longjmp(g_oled_jmp, 1);
+}
+
+void oled_arm_watchdog() {
+    struct sigaction sa{};
+    sa.sa_handler = oled_watchdog_handler;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGALRM, &sa, nullptr);
+}
+
+bool oled_init_guarded() {
+    oled_arm_watchdog();
+    if (setjmp(g_oled_jmp) != 0) {
+        std::fprintf(stderr, "[OLED] Init agotado (bus I2C atascado). Continuando sin display.\n");
+        g_oled.disable();
+        return false;
+    }
+    alarm(5);
+    bool ok = g_oled.init();
+    alarm(0);
+    return ok;
+}
+
+void oled_show_guarded(const std::string& l1, const std::string& l2,
+                       const std::string& l3, const std::string& l4) {
+    if (!g_oled.ready()) return;
+    oled_arm_watchdog();
+    if (setjmp(g_oled_jmp) != 0) {
+        std::fprintf(stderr, "[OLED] Actualizacion agotada (bus I2C atascado). Display desactivado.\n");
+        g_oled.disable();
+        return;
+    }
+    alarm(2);
+    g_oled.show(l1, l2, l3, l4);
+    alarm(0);
+}
+
 void oled_throttled(const std::string& l1, const std::string& l2,
                     const std::string& l3, const std::string& l4) {
     auto now = std::chrono::steady_clock::now();
     if (now - g_last_oled < std::chrono::milliseconds(250)) return;
     g_last_oled = now;
-    g_oled.show(l1, l2, l3, l4);
+    oled_show_guarded(l1, l2, l3, l4);
 }
 
 }  // namespace
@@ -52,8 +96,8 @@ int main(int argc, char* argv[]) {
 
     std::string peer_json = "{}";
 
-    g_oled.init();
-    g_oled.show("RPi Web Server", "Iniciando...", "Modo: recibe", "");
+    oled_init_guarded();
+    oled_show_guarded("RPi Web Server", "Iniciando...", "Modo: recibe", "");
 
     http::HttpServer server(port, doc_root);
 
@@ -105,12 +149,12 @@ int main(int argc, char* argv[]) {
     });
 
     std::cout << "Inicializando OLED..." << std::endl;
-    g_oled.show("RPi Web Server", "Escuchando", "0.0.0.0:" + std::to_string(port), "doc: " + doc_root);
+    oled_show_guarded("RPi Web Server", "Escuchando", "0.0.0.0:" + std::to_string(port), "doc: " + doc_root);
 
     int rc = server.run(g_running);
 
     std::cout << "\nDeteniendo servidor..." << std::endl;
-    g_oled.show("RPi Web Server", "Apagando...");
+    oled_show_guarded("RPi Web Server", "Apagando...", "", "");
     g_oled.shutdown();
 
     std::cout << "[OK] Bye!" << std::endl;

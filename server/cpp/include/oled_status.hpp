@@ -24,6 +24,8 @@ public:
 
     void shutdown();
 
+    void disable();
+
 private:
     static constexpr int kWidth = 128;
     static constexpr int kHeight = 32;

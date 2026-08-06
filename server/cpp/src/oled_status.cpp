@@ -70,6 +70,11 @@ void OledStatus::shutdown() {
     ready_ = false;
 }
 
+void OledStatus::disable() {
+    ready_ = false;
+    oled_ = nullptr;
+}
+
 #else
 
 OledStatus::~OledStatus() {}
@@ -83,5 +88,7 @@ void OledStatus::show(const std::string&, const std::string&,
                       const std::string&, const std::string&) {}
 
 void OledStatus::shutdown() {}
+
+void OledStatus::disable() {}
 
 #endif

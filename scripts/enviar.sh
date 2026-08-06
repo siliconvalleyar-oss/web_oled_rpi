@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# Envia los cambios desde la PC al repositorio: bump de VERSION, commit, tag y push.
+# Envia los cambios desde la PC: bump de VERSION, commit, tag, push a main
+# y sincroniza la rama de la Raspberry con el nuevo codigo.
 # Uso: ./scripts/enviar.sh [mensaje de commit]
 set -euo pipefail
 
 BRANCH="envio-pc"
+RECV="recepcion-rpi"
+REMOTE="origin"
 
 if [ "$(git rev-parse --abbrev-ref HEAD)" != "$BRANCH" ]; then
     echo "Este script debe ejecutarse en la rama $BRANCH. Actual: $(git rev-parse --abbrev-ref HEAD)"
@@ -30,6 +33,8 @@ next_version() {
     echo "$x.$y.$z"
 }
 
+trap 'git checkout "$BRANCH" 2>/dev/null || true' EXIT
+
 NEXT="$(next_version "$(git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)")"
 
 echo "$NEXT" > VERSION
@@ -37,9 +42,12 @@ git add -A
 git commit -m "${MSG}"
 git tag "v${NEXT}"
 
-git push origin envio-pc:main envio-pc:recepcion-rpi --tags
+git push "$REMOTE" "$BRANCH:main" --tags
+git fetch "$REMOTE"
+git branch -f main "$REMOTE/main"
 
-git branch -f main envio-pc
-git branch -f recepcion-rpi envio-pc 2>/dev/null || true
+git checkout "$RECV" 2>/dev/null || git checkout -b "$RECV" --track "$REMOTE/$RECV"
+git merge --no-edit "$REMOTE/main"
+git push "$REMOTE" "$RECV"
 
-echo "Enviado v${NEXT} a main y recepcion-rpi."
+echo "Enviado v${NEXT} a main y sincronizada $RECV."

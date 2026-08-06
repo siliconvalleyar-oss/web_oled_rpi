@@ -1,6 +1,12 @@
 CXX      = g++
 CXXFLAGS = -std=c++11 -O2 -Wall -Wextra -Iinclude
+
+ARCH     := $(shell uname -m)
+ifneq ($(strip $(findstring arm,$(ARCH))$(findstring aarch64,$(ARCH))),)
 LDFLAGS  = -lSSD1306_OLED_RPI -lbcm2835
+else
+LDFLAGS  =
+endif
 
 TARGET   = web_server
 BINDIR   = bin

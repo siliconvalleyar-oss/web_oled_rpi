@@ -5,8 +5,10 @@
 #include <atomic>
 #include <chrono>
 #include <csignal>
+#include <cstdlib>
 #include <ctime>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
 
